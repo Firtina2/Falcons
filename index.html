@@ -1562,8 +1562,8 @@
       return Array.from(uniqueRowsMap.values());
     }
 
-    async function stochUpsertInitialFalconSignals(rows, optionsClient) {
-      const uniqueRows = stochBuildInitialFalconSignalRows(rows);
+	    async function stochUpsertInitialFalconSignals(rows, optionsClient) {
+	      const uniqueRows = stochBuildInitialFalconSignalRows(rows);
 
       console.log("Extracted initial falcon rows count:", uniqueRows.length);
       uniqueRows.forEach((row) => {
@@ -1629,18 +1629,54 @@
 
       if (upsertResult.error) {
         throw new Error(`خطأ في حفظ فرص الصقور الأولية في قاعدة العقود: ${upsertResult.error.message}`);
-      }
-    }
+	      }
+	    }
+	
+	    async function stochProcessPendingOptionsViaLocalServer() {
+	      const controller = new AbortController();
+	      const timeoutId = window.setTimeout(() => controller.abort(), 60000);
 
-    async function stochRefreshSuggestedOptionsWorkflow() {
-      try {
-        stochSuggestedOptionsRefreshBtn.disabled = true;
-        const optionsClient = stochCreateOptionsSupabaseClientFromInputs();
-        await stochUpsertInitialFalconSignals(stochCurrentInitialFalconRows, optionsClient);
-        await stochLoadSuggestedOptions(optionsClient);
-      } catch (error) {
-        console.error(error);
-        stochRenderSuggestedOptionsEmpty(error.message || "تعذر حفظ فرص الصقور الأولية أو تحميل العقود المقترحة.");
+	      try {
+	        stochRenderSuggestedOptionsEmpty("جاري تحديث العقود من السيرفر المحلي...");
+
+	        const response = await fetch("http://127.0.0.1:8000/api/process-falcon-options?limit=20&force=false", {
+	          method: "POST",
+	          signal: controller.signal
+	        });
+
+	        const result = await response.json().catch(() => ({}));
+
+	        console.log("Local options processing result:", {
+	          ok: result.ok,
+	          signals_found: result.signals_found,
+	          processed_count: result.processed_count,
+	          error_count: result.error_count
+	        });
+
+	        if (!response.ok || result.ok === false) {
+	          throw new Error(result.message || "تعذر تحديث العقود من السيرفر المحلي.");
+	        }
+	      } catch (error) {
+	        if (error.name === "AbortError") {
+	          throw new Error("انتهت مهلة تحديث العقود من السيرفر المحلي. تأكد أن run_options_server.command يعمل.");
+	        }
+
+	        throw new Error("تعذر تحديث العقود من السيرفر المحلي. تأكد أن run_options_server.command يعمل.");
+	      } finally {
+	        window.clearTimeout(timeoutId);
+	      }
+	    }
+
+	    async function stochRefreshSuggestedOptionsWorkflow() {
+	      try {
+	        stochSuggestedOptionsRefreshBtn.disabled = true;
+	        const optionsClient = stochCreateOptionsSupabaseClientFromInputs();
+	        await stochUpsertInitialFalconSignals(stochCurrentInitialFalconRows, optionsClient);
+	        await stochProcessPendingOptionsViaLocalServer();
+	        await stochLoadSuggestedOptions(optionsClient);
+	      } catch (error) {
+	        console.error(error);
+	        stochRenderSuggestedOptionsEmpty(error.message || "تعذر حفظ فرص الصقور الأولية أو تحميل العقود المقترحة.");
       } finally {
         stochSuggestedOptionsRefreshBtn.disabled = false;
       }
