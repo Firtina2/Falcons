@@ -1058,9 +1058,9 @@
       if (error) throw new Error(`خطأ في تحميل العقود المقترحة: ${error.message}`);
 
       const suggestedRows = data || [];
-      const filteredRows = stochCurrentInitialFalconPairs.size > 0
-        ? suggestedRows.filter((row) => stochCurrentInitialFalconPairs.has(stochBuildSignalPairKey(row.signal_date, row.symbol)))
-        : suggestedRows;
+      const filteredRows = suggestedRows.filter((row) => (
+        stochCurrentInitialFalconPairs.has(stochBuildSignalPairKey(row.signal_date, row.symbol))
+      ));
 
       stochRenderSuggestedOptions(filteredRows);
       return filteredRows.length;
