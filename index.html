@@ -3,8 +3,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>لوحة الصقور أونلاين</title>
+  <title>الصقور</title>
+
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
   <style>
     :root {
       --bg: #0f172a;
@@ -50,6 +52,10 @@
       line-height: 1.8;
     }
 
+    .stoch-hidden {
+      display: none !important;
+    }
+
     .stoch-card {
       background: var(--card);
       border: 1px solid var(--border);
@@ -78,6 +84,14 @@
       font-size: 14px;
     }
 
+    .stoch-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-start;
+      margin-top: 12px;
+    }
+
     .stoch-btn {
       border: 0;
       padding: 7px 12px;
@@ -86,20 +100,6 @@
       font-size: 13px;
       font-weight: 700;
       transition: transform 0.15s ease, opacity 0.15s ease;
-      background: var(--accent);
-      color: #082f49;
-    }
-
-    .stoch-archive-btn {
-      background: var(--warning);
-      color: #451a03;
-    }
-
-    .stoch-actions {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-start;
     }
 
     .stoch-btn:hover {
@@ -111,6 +111,36 @@
       cursor: not-allowed;
       opacity: 0.6;
       transform: none;
+    }
+
+    .stoch-refresh-btn {
+      background: var(--accent);
+      color: #082f49;
+    }
+
+    .stoch-telegram-btn {
+      background: var(--success);
+      color: #052e16;
+    }
+
+    .stoch-archive-btn {
+      background: var(--warning);
+      color: #451a03;
+    }
+
+    .stoch-pdf-btn {
+      background: #e5e7eb;
+      color: #111827;
+    }
+
+    .stoch-csv-btn {
+      background: #a7f3d0;
+      color: #064e3b;
+    }
+
+    .stoch-clear-archive-btn {
+      background: var(--danger);
+      color: #450a0a;
     }
 
     .stoch-status {
@@ -139,10 +169,6 @@
       min-width: 1480px;
     }
 
-    .stoch-options-table {
-      min-width: 2920px;
-    }
-
     .stoch-result-table th,
     .stoch-result-table td {
       padding: 14px 12px;
@@ -162,15 +188,23 @@
       font-size: 14px;
     }
 
+    .stoch-result-table tr:last-child td { border-bottom: 0; }
+
+    .stoch-options-table {
+      min-width: 2920px;
+    }
+
+    .stoch-option-row-selected td {
+      background: rgba(34, 197, 94, 0.08);
+    }
+
     .stoch-empty-row td {
       color: var(--muted);
       padding: 24px;
     }
 
     .stoch-badge,
-    .stoch-combo-badge,
-    .stoch-falcon-class,
-    .stoch-selection-status {
+    .stoch-combo-badge {
       display: inline-flex;
       align-items: center;
       justify-content: center;
@@ -191,6 +225,15 @@
       border: 1px solid rgba(245, 158, 11, 0.25);
     }
 
+    .stoch-falcon-class {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-weight: 700;
+    }
+
     .stoch-falcon-class.strong {
       background: rgba(34, 197, 94, 0.14);
       color: var(--success);
@@ -209,9 +252,15 @@
     }
 
     .stoch-selection-status {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
       max-width: 360px;
       white-space: normal;
       line-height: 1.5;
+      padding: 5px 10px;
+      border-radius: 999px;
+      font-weight: 700;
       background: rgba(156, 163, 175, 0.12);
       color: var(--muted);
       border: 1px solid rgba(156, 163, 175, 0.25);
@@ -222,6 +271,41 @@
       color: var(--success);
       border-color: rgba(34, 197, 94, 0.30);
     }
+
+    .stoch-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.8;
+    }
+
+    .stoch-settings-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 14px;
+      margin-top: 12px;
+    }
+
+    .stoch-field label {
+      display: block;
+      color: var(--muted);
+      margin-bottom: 6px;
+      font-size: 13px;
+    }
+
+    .stoch-field input {
+      width: 100%;
+      background: var(--card-2);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 11px 12px;
+      outline: none;
+      direction: ltr;
+      text-align: left;
+    }
+
+    .stoch-field input:focus { border-color: var(--accent); }
 
     .stoch-decision {
       display: inline-flex;
@@ -252,14 +336,167 @@
       background: rgba(156, 163, 175, 0.1);
       border: 1px solid rgba(156, 163, 175, 0.22);
     }
+
+    @media (max-width: 720px) {
+      .stoch-settings-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+
+  <style>
+    /* Falcons quick-filter table — scoped styles, independent from the rest of the page. */
+    .falcons-filter-card {
+      background: #111827;
+      border: 1px solid #374151;
+      border-radius: 16px;
+      padding: 18px;
+      box-shadow: 0 18px 40px rgba(0, 0, 0, 0.25);
+      margin-bottom: 18px;
+      color: #f9fafb;
+      font-family: Arial, Tahoma, sans-serif;
+    }
+
+    .falcons-filter-toolbar {
+      margin-bottom: 16px;
+    }
+
+    .falcons-filter-title {
+      margin: 0;
+      font-size: 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .falcons-filter-counter {
+      font-size: 14px;
+      font-weight: 700;
+      color: #38bdf8;
+    }
+
+    .falcons-filter-table-container {
+      width: 100%;
+      overflow-x: auto;
+      border: 1px solid #374151;
+      border-radius: 12px;
+      background: #1f2937;
+    }
+
+    table.falcons-filter-table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 1480px;
+    }
+
+    .falcons-filter-table th,
+    .falcons-filter-table td {
+      padding: 14px 12px;
+      border-bottom: 1px solid #374151;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .falcons-filter-table th {
+      background: #020617;
+      color: #38bdf8;
+      font-size: 14px;
+    }
+
+    .falcons-filter-table td {
+      color: #f9fafb;
+      font-size: 14px;
+    }
+
+    .falcons-filter-table tr:last-child td { border-bottom: 0; }
+
+    .falcons-filter-empty-row td {
+      color: #9ca3af;
+      padding: 24px;
+    }
+
+    .falcons-filter-row-strong {
+      background-color: rgba(34, 197, 94, 0.10);
+    }
+
+    .falcons-filter-row-strong .falcons-filter-class-cell {
+      color: #4ade80;
+      font-weight: 700;
+    }
+
+    .falcons-filter-row-risky {
+      background-color: rgba(239, 68, 68, 0.10);
+    }
+
+    .falcons-filter-row-risky .falcons-filter-class-cell {
+      color: #f87171;
+      font-weight: 700;
+    }
   </style>
 </head>
 
 <body>
   <main class="stoch-page">
     <section class="stoch-header">
-      <h1>الصقور - Falcons Online Dashboard</h1>
-      <p>لوحة قراءة فقط - Read-only Dashboard</p>
+      <h1>الصقور - Falcons</h1>
+    </section>
+
+    <section class="falcons-filter-card" dir="rtl">
+      <div class="falcons-filter-toolbar">
+        <h2 class="falcons-filter-title">
+          فرص الصقور المؤهلة — الشرط السريع
+          <span id="falcons-filter-counter" class="falcons-filter-counter">(0 فرص)</span>
+        </h2>
+      </div>
+
+      <div class="falcons-filter-table-container">
+        <table class="falcons-filter-table" dir="rtl">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>الشركة</th>
+              <th>تصنيف الصقر</th>
+              <th>ملاحظة الصقر</th>
+              <th>التاريخ</th>
+              <th>الخوارزمية</th>
+              <th>k</th>
+              <th>D</th>
+              <th>الفرق K-D</th>
+              <th>معامل الحجم</th>
+              <th>موقع الإغلاق</th>
+              <th>مدى اليوم %</th>
+              <th>القرار</th>
+            </tr>
+          </thead>
+          <tbody id="falcons-filter-body">
+            <tr class="falcons-filter-empty-row">
+              <td colspan="13">لا توجد فرص مؤهلة حالياً</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="stoch-card stoch-hidden" aria-hidden="true">
+      <div class="stoch-title-wrap">
+        <h2>إعدادات المنصة / Supabase</h2>
+        <span>بيانات Supabase تقرأ من ثوابت داخل نفس الصفحة ولا تحفظ في localStorage.</span>
+      </div>
+
+      <div class="stoch-settings-grid">
+        <div class="stoch-field">
+          <label for="stoch-supabase-url">Supabase URL</label>
+          <input id="stoch-supabase-url" type="text" placeholder="https://xxxxx.supabase.co" autocomplete="off" />
+        </div>
+
+        <div class="stoch-field">
+          <label for="stoch-supabase-key">Supabase Anon Key</label>
+          <input id="stoch-supabase-key" type="password" placeholder="eyJhbGciOi..." autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="stoch-note">
+        هذه الطريقة مناسبة للاختبار المحلي فقط. في النسخة النهائية الأفضل إخفاء المفاتيح عبر Backend أو Edge Function.
+      </div>
     </section>
 
     <section class="stoch-card">
@@ -268,11 +505,14 @@
           <h2>قائمة الصقور - Falcons List</h2>
         </div>
         <div class="stoch-actions">
-          <button id="stoch-refresh-btn" class="stoch-btn" type="button">تحديث العرض</button>
-          <button id="stoch-archive-btn" class="stoch-btn stoch-archive-btn" type="button" disabled>أرشفة قائمة الصقور</button>
+          <button id="stoch-refresh-btn" class="stoch-btn stoch-refresh-btn" type="button">
+            تحديث
+          </button>
         </div>
       </div>
+
       <div id="stoch-status" class="stoch-status"></div>
+
       <div class="stoch-table-container">
         <table class="stoch-result-table">
           <thead>
@@ -293,9 +533,23 @@
             </tr>
           </thead>
           <tbody id="stoch-result-body">
-            <tr class="stoch-empty-row"><td colspan="13">جاري التحميل...</td></tr>
+            <tr class="stoch-empty-row">
+              <td colspan="13">جاري التحميل...</td>
+            </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="stoch-actions">
+        <button id="stoch-archive-btn" class="stoch-btn stoch-archive-btn" type="button" disabled>
+          أرشفة فرص اليوم
+        </button>
+        <button id="stoch-telegram-btn" class="stoch-btn stoch-telegram-btn" type="button" disabled>
+          إرسال إلى تيليجرام
+        </button>
+        <button id="stoch-results-pdf-btn" class="stoch-btn stoch-pdf-btn" type="button">
+          تصدير PDF
+        </button>
       </div>
     </section>
 
@@ -304,7 +558,9 @@
         <div class="stoch-title-wrap">
           <h2>قائمة الصقور الأولية - Initial Falcons List</h2>
         </div>
+
       </div>
+
       <div class="stoch-table-container">
         <table class="stoch-result-table">
           <thead>
@@ -325,9 +581,17 @@
             </tr>
           </thead>
           <tbody id="stoch-before-close-position-body">
-            <tr class="stoch-empty-row"><td colspan="13">جاري التحميل...</td></tr>
+            <tr class="stoch-empty-row">
+              <td colspan="13">جاري التحميل...</td>
+            </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="stoch-actions">
+        <button id="stoch-before-close-position-pdf-btn" class="stoch-btn stoch-pdf-btn" type="button">
+          تصدير PDF
+        </button>
       </div>
     </section>
 
@@ -335,9 +599,13 @@
       <div class="stoch-toolbar">
         <div class="stoch-title-wrap">
           <h2>العقود المقترحة - Suggested Contracts</h2>
-          <span>تعرض العقود المحفوظة في قاعدة Supabase فقط.</span>
         </div>
+
+        <button id="stoch-suggested-options-refresh-btn" class="stoch-btn stoch-refresh-btn" type="button">
+          تحديث العقود المقترحة
+        </button>
       </div>
+
       <div class="stoch-table-container">
         <table class="stoch-result-table stoch-options-table">
           <thead>
@@ -369,19 +637,41 @@
             </tr>
           </thead>
           <tbody id="stoch-suggested-options-body">
-            <tr class="stoch-empty-row"><td colspan="24">جاري التحميل...</td></tr>
+            <tr class="stoch-empty-row">
+              <td colspan="24">اضغط زر تحديث العقود المقترحة بعد تحميل قائمة الصقور الأولية.</td>
+            </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="stoch-actions">
+        <button id="stoch-suggested-options-archive-btn" class="stoch-btn stoch-archive-btn" type="button" disabled>
+          أرشفة العقود المقترحة
+        </button>
+      </div>
+
+      <div id="stoch-options-supabase-settings" class="stoch-settings-grid stoch-hidden" aria-hidden="true">
+        <div class="stoch-field">
+          <label for="stoch-options-supabase-url">Supabase URL للعقود المقترحة</label>
+          <input id="stoch-options-supabase-url" type="text" placeholder="https://xxxxx.supabase.co" autocomplete="off" />
+        </div>
+
+        <div class="stoch-field">
+          <label for="stoch-options-supabase-key">Supabase Anon Key للعقود المقترحة</label>
+          <input id="stoch-options-supabase-key" type="password" placeholder="eyJhbGciOi..." autocomplete="off" />
+        </div>
       </div>
     </section>
 
     <section class="stoch-card">
       <div class="stoch-toolbar">
         <div class="stoch-title-wrap">
-          <h2>أرشيف قائمة الصقور - Falcons Archive</h2>
-          <span>أرشيف محلي للفرص التي تمت أرشفتها من هذه الصفحة.</span>
+          <h2>أرشيف الصقور - Falcons Archive</h2>
+          <span>الفرص التي تم حفظها يدويًا للمراجعة والمتابعة.</span>
         </div>
+
       </div>
+
       <div class="stoch-table-container">
         <table class="stoch-result-table">
           <thead>
@@ -402,38 +692,148 @@
             </tr>
           </thead>
           <tbody id="stoch-archive-body">
-            <tr class="stoch-empty-row"><td colspan="13">لا توجد فرص مؤرشفة بعد</td></tr>
+            <tr class="stoch-empty-row">
+              <td colspan="13">لا توجد فرص مؤرشفة بعد</td>
+            </tr>
           </tbody>
         </table>
+      </div>
+
+      <div class="stoch-actions">
+        <button id="stoch-clear-archive-btn" class="stoch-btn stoch-clear-archive-btn" type="button">
+          مسح الأرشيف
+        </button>
+        <button id="stoch-archive-pdf-btn" class="stoch-btn stoch-pdf-btn" type="button">
+          تصدير PDF
+        </button>
+        <button id="stoch-archive-csv-btn" class="stoch-btn stoch-csv-btn" type="button">
+          تصدير CSV
+        </button>
+      </div>
+    </section>
+
+    <section class="stoch-card">
+      <div class="stoch-toolbar">
+        <div class="stoch-title-wrap">
+          <h2>أرشيف العقود المقترحة - Suggested Contracts Archive</h2>
+          <span>العقود المقترحة التي تم حفظها يدويًا للمراجعة والمتابعة.</span>
+        </div>
+
+      </div>
+
+      <div class="stoch-table-container">
+        <table class="stoch-result-table stoch-options-table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>تاريخ الأرشفة</th>
+              <th>الشركة</th>
+              <th>الإغلاق</th>
+              <th>الهدف</th>
+              <th>العقد</th>
+              <th>الاسترايك</th>
+              <th>الانتهاء</th>
+              <th>DTE</th>
+              <th>Ask</th>
+              <th>Spread%</th>
+              <th>Vol</th>
+              <th>OI</th>
+              <th>+100 إغلاق</th>
+              <th>+100 يوم2</th>
+              <th>+200 يوم2</th>
+              <th>التصنيف</th>
+              <th>الدخول</th>
+              <th>المخاطرة</th>
+              <th>هدف 1</th>
+              <th>هدف 2</th>
+              <th>هدف 3</th>
+              <th>الخطة</th>
+              <th>ملاحظات</th>
+              <th>الحالة</th>
+            </tr>
+          </thead>
+          <tbody id="stoch-suggested-options-archive-body">
+            <tr class="stoch-empty-row">
+              <td colspan="25">لا توجد عقود مقترحة مؤرشفة بعد</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <div class="stoch-actions">
+        <button id="stoch-suggested-options-archive-pdf-btn" class="stoch-btn stoch-pdf-btn" type="button">
+          تصدير PDF
+        </button>
+        <button id="stoch-suggested-options-archive-csv-btn" class="stoch-btn stoch-csv-btn" type="button">
+          تصدير CSV
+        </button>
+      </div>
+    </section>
+
+    <section class="stoch-card">
+      <div class="stoch-title-wrap">
+        <h2>إعدادات تيليجرام</h2>
+        <span>ضع Bot Token و Chat ID للتجربة. الإرسال لا يتم تلقائيًا، فقط عند الضغط على زر الإرسال.</span>
+      </div>
+
+      <div class="stoch-settings-grid">
+        <div class="stoch-field">
+          <label for="stoch-telegram-token">Telegram Bot Token</label>
+          <input id="stoch-telegram-token" type="password" placeholder="مثال: 123456:ABC..." autocomplete="off" />
+        </div>
+
+        <div class="stoch-field">
+          <label for="stoch-telegram-chat-id">Telegram Chat ID</label>
+          <input id="stoch-telegram-chat-id" type="text" placeholder="مثال: 123456789 أو @channelname" autocomplete="off" />
+        </div>
+      </div>
+
+      <div class="stoch-note">
+        تنبيه أمني: وضع Bot Token داخل صفحة HTML أمامية مناسب للاختبار المحلي فقط.
       </div>
     </section>
   </main>
 
-  <script>
+    <script>
+    const STOCH_STORAGE_KEYS = {
+      telegramToken: "stoch_telegram_token",
+      telegramChatId: "stoch_telegram_chat_id",
+      optionsSupabaseUrl: "stoch_options_supabase_url",
+      optionsSupabaseAnonKey: "stoch_options_supabase_anon_key"
+    };
+
     const STOCH_DEFAULT_SUPABASE_URL = "https://ipbrbzspogkrkcospivs.supabase.co";
     const STOCH_DEFAULT_SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImlwYnJienNwb2drcmtjb3NwaXZzIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTYzMjI3MTYsImV4cCI6MjA3MTg5ODcxNn0.N7bO1AZUM2s5_AW0SmjyhzEX3uB64YMKfB3eAipq2lA";
-    const STOCH_DEFAULT_OPTIONS_SUPABASE_URL = "https://nmphocgtwywqcyrbxvwo.supabase.co";
-    const STOCH_DEFAULT_OPTIONS_SUPABASE_ANON_KEY = "sb_publishable_49OZ4PGYq0hwHwK9ICoGcQ_AbT-Xvaf";
-
     const STOCH_SUPABASE_URL = String(window.NEXT_PUBLIC_SUPABASE_URL || window.STOCH_SUPABASE_URL || STOCH_DEFAULT_SUPABASE_URL).trim();
     const STOCH_SUPABASE_ANON_KEY = String(window.NEXT_PUBLIC_SUPABASE_ANON_KEY || window.STOCH_SUPABASE_ANON_KEY || STOCH_DEFAULT_SUPABASE_ANON_KEY).trim();
+    const STOCH_DEFAULT_OPTIONS_SUPABASE_URL = "https://nmphocgtwywqcyrbxvwo.supabase.co";
+    const STOCH_DEFAULT_OPTIONS_SUPABASE_ANON_KEY = "sb_publishable_49OZ4PGYq0hwHwK9ICoGcQ_AbT-Xvaf";
     const STOCH_OPTIONS_SUPABASE_URL = String(window.NEXT_PUBLIC_OPTIONS_SUPABASE_URL || window.STOCH_OPTIONS_SUPABASE_URL || STOCH_DEFAULT_OPTIONS_SUPABASE_URL).trim();
     const STOCH_OPTIONS_SUPABASE_ANON_KEY = String(window.NEXT_PUBLIC_OPTIONS_SUPABASE_ANON_KEY || window.STOCH_OPTIONS_SUPABASE_ANON_KEY || STOCH_DEFAULT_OPTIONS_SUPABASE_ANON_KEY).trim();
+
+    const STOCH_ARCHIVE_STORAGE_KEY = "stoch_falcons_archive";
+    const STOCH_SUGGESTED_OPTIONS_ARCHIVE_STORAGE_KEY = "stoch_suggested_options_archive";
 
     const STOCH_PRIMARY_STRATEGY = "c534";
     const STOCH_PERIOD_K = 14;
     const STOCH_SMOOTH_K = 1;
     const STOCH_PERIOD_D = 3;
-    const STOCH_SIGNAL_SEARCH_LIMIT = 200;
-    const STOCH_SUGGESTED_OPTIONS_VIEW = "suggested_options_compact_view";
-    const STOCH_ARCHIVE_STORAGE_KEY = "falcons_online_dashboard_archive";
 
-    const GOLDEN_FALCONS = ["MU", "TSLA", "ARM", "MDB", "BABA", "NVDA", "FSLR", "AMD", "MRVL"];
+    // مهم: هذا عدد أسطر strategy_results وليس عدد الفرص.
+    // إذا كانت الفرص كثيرة وكل فرصة لها عدة استراتيجيات، ارفع الرقم إلى 200 أو 300.
+    const STOCH_SIGNAL_SEARCH_LIMIT = 200;
+
+    const GOLDEN_FALCONS = [
+      "MU", "TSLA", "ARM", "MDB", "BABA", "NVDA", "FSLR", "AMD", "MRVL"
+    ];
+
     const RISKY_FALCONS = [
       "MSTR", "AVGO", "PLTR", "SMCI", "SNOW", "SNAP", "QCOM", "AMAT",
       "ABBV", "AMZN", "CVNA", "CAT", "LLY", "ABNB", "CRWD"
     ];
+
     const ALL_FALCONS = [...GOLDEN_FALCONS, ...RISKY_FALCONS];
+
     const HIGH_RISK_FALCONS = ["MSTR", "SMCI", "PLTR", "SNAP"];
     const DATA_ISSUE_FALCONS = ["CVNA"];
 
@@ -442,6 +842,7 @@
       signalSymbolColumn: "symbol",
       signalDateColumn: "date",
       signalStrategyColumn: "strategy",
+
       pricesTable: "polygon_market",
       priceSymbolColumn: "symbol",
       priceDateColumn: "from_date",
@@ -451,19 +852,41 @@
       priceVolumeColumn: "volume"
     };
 
-    const stochSupabaseClient = supabase.createClient(STOCH_SUPABASE_URL, STOCH_SUPABASE_ANON_KEY);
-    const stochOptionsSupabaseClient = supabase.createClient(STOCH_OPTIONS_SUPABASE_URL, STOCH_OPTIONS_SUPABASE_ANON_KEY);
+    const STOCH_SUGGESTED_OPTIONS_VIEW = "suggested_options_compact_view";
+    const STOCH_FALCON_SIGNALS_TABLE = "falcon_signals";
 
-    let stochCurrentInitialFalconPairs = new Set();
+    let stochSupabaseClient = null;
+    let stochOptionsSupabaseClient = null;
     let stochLatestResults = [];
+    let stochCurrentInitialFalconRows = [];
+    let stochCurrentInitialFalconPairs = new Set();
+    let stochLatestSuggestedOptionsRows = [];
 
+    const stochSupabaseUrlEl = document.getElementById("stoch-supabase-url");
+    const stochSupabaseKeyEl = document.getElementById("stoch-supabase-key");
     const stochStatusEl = document.getElementById("stoch-status");
     const stochResultBodyEl = document.getElementById("stoch-result-body");
     const stochBeforeClosePositionBodyEl = document.getElementById("stoch-before-close-position-body");
     const stochSuggestedOptionsBodyEl = document.getElementById("stoch-suggested-options-body");
+    const stochOptionsSupabaseSettingsEl = document.getElementById("stoch-options-supabase-settings");
+    const stochOptionsSupabaseUrlEl = document.getElementById("stoch-options-supabase-url");
+    const stochOptionsSupabaseKeyEl = document.getElementById("stoch-options-supabase-key");
     const stochArchiveBodyEl = document.getElementById("stoch-archive-body");
     const stochRefreshBtn = document.getElementById("stoch-refresh-btn");
+    const stochSuggestedOptionsRefreshBtn = document.getElementById("stoch-suggested-options-refresh-btn");
+    const stochSuggestedOptionsArchiveBtn = document.getElementById("stoch-suggested-options-archive-btn");
     const stochArchiveBtn = document.getElementById("stoch-archive-btn");
+    const stochTelegramBtn = document.getElementById("stoch-telegram-btn");
+    const stochClearArchiveBtn = document.getElementById("stoch-clear-archive-btn");
+    const stochResultsPdfBtn = document.getElementById("stoch-results-pdf-btn");
+    const stochBeforeClosePositionPdfBtn = document.getElementById("stoch-before-close-position-pdf-btn");
+    const stochArchivePdfBtn = document.getElementById("stoch-archive-pdf-btn");
+    const stochArchiveCsvBtn = document.getElementById("stoch-archive-csv-btn");
+    const stochSuggestedOptionsArchiveBodyEl = document.getElementById("stoch-suggested-options-archive-body");
+    const stochSuggestedOptionsArchivePdfBtn = document.getElementById("stoch-suggested-options-archive-pdf-btn");
+    const stochSuggestedOptionsArchiveCsvBtn = document.getElementById("stoch-suggested-options-archive-csv-btn");
+    const stochTelegramTokenEl = document.getElementById("stoch-telegram-token");
+    const stochTelegramChatIdEl = document.getElementById("stoch-telegram-chat-id");
 
     function stochSetStatus(message, type = "") {
       stochStatusEl.textContent = message;
@@ -524,17 +947,37 @@
 
     function stochGetFalconClass(symbol) {
       const s = stochNormalizeSymbol(symbol);
-      if (GOLDEN_FALCONS.includes(s)) return "فرصة قوية";
-      if (RISKY_FALCONS.includes(s)) return "فرصة خطيرة";
+
+      if (GOLDEN_FALCONS.includes(s)) {
+        return "فرصة قوية";
+      }
+
+      if (RISKY_FALCONS.includes(s)) {
+        return "فرصة خطيرة";
+      }
+
       return "خارج قائمة الصقور";
     }
 
     function stochGetFalconNote(symbol) {
       const s = stochNormalizeSymbol(symbol);
-      if (GOLDEN_FALCONS.includes(s)) return "ذهبية - متوازنة";
-      if (DATA_ISSUE_FALCONS.includes(s)) return "مستبعدة - مشكلة بيانات";
-      if (HIGH_RISK_FALCONS.includes(s)) return "خطيرة - عالية المخاطرة";
-      if (RISKY_FALCONS.includes(s)) return "خطيرة - أداء ضعيف";
+
+      if (GOLDEN_FALCONS.includes(s)) {
+        return "ذهبية - متوازنة";
+      }
+
+      if (DATA_ISSUE_FALCONS.includes(s)) {
+        return "مستبعدة - مشكلة بيانات";
+      }
+
+      if (HIGH_RISK_FALCONS.includes(s)) {
+        return "خطيرة - عالية المخاطرة";
+      }
+
+      if (RISKY_FALCONS.includes(s)) {
+        return "خطيرة - أداء ضعيف";
+      }
+
       return "خارج القائمة";
     }
 
@@ -550,16 +993,33 @@
     }
 
     function stochGetDecision(k, d) {
-      if (!Number.isFinite(k) || !Number.isFinite(d)) return { text: "-", className: "neutral" };
-      if (k > d) return { text: "✓", className: "ok" };
-      if (k < d) return { text: "✕", className: "bad" };
+      if (!Number.isFinite(k) || !Number.isFinite(d)) {
+        return { text: "-", className: "neutral" };
+      }
+
+      if (k > d) {
+        return { text: "✓", className: "ok" };
+      }
+
+      if (k < d) {
+        return { text: "✕", className: "bad" };
+      }
+
       return { text: "-", className: "neutral" };
     }
 
-    function stochRenderEmptyForBody(bodyEl, message, colspan = 13) {
+    function stochRenderEmpty(message) {
+      stochResultBodyEl.innerHTML = `
+        <tr class="stoch-empty-row">
+          <td colspan="13">${stochEscapeHtml(message)}</td>
+        </tr>
+      `;
+    }
+
+    function stochRenderEmptyForBody(bodyEl, message) {
       bodyEl.innerHTML = `
         <tr class="stoch-empty-row">
-          <td colspan="${colspan}">${stochEscapeHtml(message)}</td>
+          <td colspan="13">${stochEscapeHtml(message)}</td>
         </tr>
       `;
     }
@@ -595,75 +1055,12 @@
       }).join("");
     }
 
-    function stochLoadArchive() {
-      try {
-        const raw = localStorage.getItem(STOCH_ARCHIVE_STORAGE_KEY);
-        const archive = raw ? JSON.parse(raw) : [];
-        return Array.isArray(archive) ? archive : [];
-      } catch (error) {
-        console.error("Archive load error:", error);
-        return [];
-      }
+    function stochRenderResults(rows) {
+      stochRenderRows(stochResultBodyEl, rows, "لا توجد فرص مطابقة");
     }
 
-    function stochSaveArchive(archiveRows) {
-      localStorage.setItem(STOCH_ARCHIVE_STORAGE_KEY, JSON.stringify(archiveRows));
-    }
-
-    function stochRenderArchive(archiveRows = stochLoadArchive()) {
-      if (!archiveRows || archiveRows.length === 0) {
-        stochRenderEmptyForBody(stochArchiveBodyEl, "لا توجد فرص مؤرشفة بعد");
-        return;
-      }
-
-      stochArchiveBodyEl.innerHTML = archiveRows.map((row, index) => {
-        const falconClassCss = stochGetFalconClassCss(row.falcon_class);
-        const falconNoteCss = stochGetFalconNoteCss(row.falcon_note);
-
-        return `
-          <tr>
-            <td>${index + 1}</td>
-            <td>${stochEscapeHtml(stochFormatDate(row.archived_at))}</td>
-            <td><span class="stoch-badge">${stochEscapeHtml(row.symbol)}</span></td>
-            <td><span class="stoch-falcon-class ${falconClassCss}">${stochEscapeHtml(row.falcon_class)}</span></td>
-            <td><span class="stoch-falcon-note ${falconNoteCss}">${stochEscapeHtml(row.falcon_note)}</span></td>
-            <td>${stochEscapeHtml(stochFormatDate(row.signalDate))}</td>
-            <td><span class="stoch-combo-badge">${stochEscapeHtml(row.strategiesText)}</span></td>
-            <td>${stochEscapeHtml(stochFormatNumber(row.k))}</td>
-            <td>${stochEscapeHtml(stochFormatNumber(row.d))}</td>
-            <td>${stochEscapeHtml(stochFormatNumber(row.stoch_gap))}</td>
-            <td>${stochEscapeHtml(stochFormatNumber(row.volume_ratio_20d))}</td>
-            <td>${stochEscapeHtml(stochFormatPercent(row.close_position))}</td>
-            <td>${stochEscapeHtml(stochFormatPercent(row.daily_range_pct))}</td>
-          </tr>
-        `;
-      }).join("");
-    }
-
-    function stochArchiveLatestResults() {
-      if (!stochLatestResults || stochLatestResults.length === 0) {
-        stochSetStatus("لا توجد قائمة صقور جاهزة للأرشفة.", "warn");
-        return;
-      }
-
-      const archive = stochLoadArchive();
-      const existingKeys = new Set(
-        archive.map((row) => `${stochFormatDate(row.signalDate)}|${stochNormalizeSymbol(row.symbol)}`)
-      );
-      const archivedAt = new Date().toISOString();
-      const newRows = stochLatestResults
-        .filter((row) => !existingKeys.has(`${stochFormatDate(row.signalDate)}|${stochNormalizeSymbol(row.symbol)}`))
-        .map((row) => ({ ...row, archived_at: archivedAt }));
-
-      if (newRows.length === 0) {
-        stochSetStatus("كل فرص قائمة الصقور الحالية موجودة مسبقًا في الأرشيف.", "warn");
-        return;
-      }
-
-      const updatedArchive = [...newRows, ...archive];
-      stochSaveArchive(updatedArchive);
-      stochRenderArchive(updatedArchive);
-      stochSetStatus(`تمت أرشفة ${newRows.length} فرصة من قائمة الصقور.`, "ok");
+    function stochRenderBeforeClosePositionResults(rows) {
+      stochRenderRows(stochBeforeClosePositionBodyEl, rows, "لا توجد فرص قبل شرط موقع الإغلاق");
     }
 
     function stochBuildSignalPairKey(signalDate, symbol) {
@@ -671,14 +1068,20 @@
     }
 
     function stochUpdateCurrentInitialFalconPairs(rows) {
+      stochCurrentInitialFalconRows = Array.isArray(rows) ? [...rows] : [];
       stochCurrentInitialFalconPairs = new Set(
-        (rows || [])
+        stochCurrentInitialFalconRows
           .map((row) => stochBuildSignalPairKey(row.signalDate, row.symbol))
           .filter((key) => !key.startsWith("|") && !key.endsWith("|"))
       );
+
+      console.log("Initial falcon opportunities count:", stochCurrentInitialFalconRows.length);
+      console.log("Initial falcon signal_date + symbol pairs:", Array.from(stochCurrentInitialFalconPairs));
     }
 
     function stochRenderSuggestedOptionsEmpty(message) {
+      stochLatestSuggestedOptionsRows = [];
+      stochSuggestedOptionsArchiveBtn.disabled = true;
       stochSuggestedOptionsBodyEl.innerHTML = `
         <tr class="stoch-empty-row">
           <td colspan="24">${stochEscapeHtml(message)}</td>
@@ -689,6 +1092,7 @@
     function stochBuildSelectionStatus(row) {
       const status = String(row.selection_status || "").trim();
       const reason = String(row.selection_reason || "").trim();
+
       if (!status && !reason) return "-";
       if (status.toLowerCase() === "selected") return "selected";
       return reason ? `${status || "-"} - ${reason}` : status;
@@ -696,7 +1100,7 @@
 
     function stochRenderSuggestedOptions(rows) {
       if (!rows || rows.length === 0) {
-        stochRenderSuggestedOptionsEmpty("لا توجد عقود مقترحة محفوظة حتى الآن.");
+        stochRenderSuggestedOptionsEmpty("لا توجد عقود مقترحة مطابقة لفرص الصقور الأولية الحالية حتى الآن.");
         return;
       }
 
@@ -705,6 +1109,9 @@
         const bSelected = String(b.selection_status || "").trim().toLowerCase() === "selected";
         return Number(bSelected) - Number(aSelected);
       });
+
+      stochLatestSuggestedOptionsRows = sortedRows;
+      stochSuggestedOptionsArchiveBtn.disabled = sortedRows.length === 0;
 
       stochSuggestedOptionsBodyEl.innerHTML = sortedRows.map((row, index) => {
         const isSelected = String(row.selection_status || "").trim().toLowerCase() === "selected";
@@ -745,52 +1152,686 @@
       }).join("");
     }
 
+    function stochLoadArchive() {
+      try {
+        const raw = localStorage.getItem(STOCH_ARCHIVE_STORAGE_KEY);
+        const archive = raw ? JSON.parse(raw) : [];
+        return Array.isArray(archive) ? archive : [];
+      } catch (error) {
+        console.error("Archive load error:", error);
+        return [];
+      }
+    }
+
+    function stochSaveArchive(archive) {
+      localStorage.setItem(STOCH_ARCHIVE_STORAGE_KEY, JSON.stringify(archive));
+    }
+
+    function stochBuildArchiveKey(row) {
+      return `${stochNormalizeSymbol(row.symbol)}__${stochFormatDate(row.signalDate)}`;
+    }
+
+    function stochRenderArchive(archiveRows = stochLoadArchive()) {
+      if (!archiveRows || archiveRows.length === 0) {
+        stochArchiveBodyEl.innerHTML = `
+          <tr class="stoch-empty-row">
+            <td colspan="13">لا توجد فرص مؤرشفة بعد</td>
+          </tr>
+        `;
+        return;
+      }
+
+      stochArchiveBodyEl.innerHTML = archiveRows.map((row, index) => {
+        const falconClassCss = stochGetFalconClassCss(row.falcon_class);
+        const falconNoteCss = stochGetFalconNoteCss(row.falcon_note);
+
+        return `
+          <tr>
+            <td>${index + 1}</td>
+            <td>${stochEscapeHtml(stochFormatDate(row.archivedAt || row.archiveDate))}</td>
+            <td><span class="stoch-badge">${stochEscapeHtml(row.symbol)}</span></td>
+            <td>
+              <span class="stoch-falcon-class ${falconClassCss}">
+                ${stochEscapeHtml(row.falcon_class)}
+              </span>
+            </td>
+            <td>
+              <span class="stoch-falcon-note ${falconNoteCss}">
+                ${stochEscapeHtml(row.falcon_note)}
+              </span>
+            </td>
+            <td>${stochEscapeHtml(stochFormatDate(row.signalDate))}</td>
+            <td><span class="stoch-combo-badge">${stochEscapeHtml(row.strategiesText)}</span></td>
+            <td>${stochEscapeHtml(stochFormatNumber(row.k))}</td>
+            <td>${stochEscapeHtml(stochFormatNumber(row.d))}</td>
+            <td>${stochEscapeHtml(stochFormatNumber(row.stoch_gap))}</td>
+            <td>${stochEscapeHtml(stochFormatNumber(row.volume_ratio_20d))}</td>
+            <td>${stochEscapeHtml(stochFormatPercent(row.close_position))}</td>
+            <td>${stochEscapeHtml(stochFormatPercent(row.daily_range_pct))}</td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function stochArchiveLatestResults() {
+      if (!stochLatestResults || stochLatestResults.length === 0) {
+        stochSetStatus("لا توجد فرص حالية للأرشفة.", "warn");
+        return;
+      }
+
+      const archive = stochLoadArchive();
+      const existingKeys = new Set(
+        archive.map((item) => stochBuildArchiveKey(item))
+      );
+
+      const archivedAt = new Date().toISOString();
+
+      const newItems = stochLatestResults
+        .filter((row) => !existingKeys.has(stochBuildArchiveKey(row)))
+        .map((row) => ({
+          ...row,
+          archivedAt,
+          archiveDate: stochFormatDate(archivedAt)
+        }));
+
+      if (newItems.length === 0) {
+        stochSetStatus("كل الفرص الحالية موجودة مسبقًا في الأرشيف.", "warn");
+        return;
+      }
+
+      const updatedArchive = [...newItems, ...archive];
+
+      stochSaveArchive(updatedArchive);
+      stochRenderArchive(updatedArchive);
+
+      stochSetStatus(`تمت أرشفة ${newItems.length} فرصة بنجاح.`, "ok");
+    }
+
+    function stochClearArchive() {
+      const confirmed = window.confirm("هل تريد مسح أرشيف الصقور بالكامل؟");
+
+      if (!confirmed) return;
+
+      localStorage.removeItem(STOCH_ARCHIVE_STORAGE_KEY);
+      stochRenderArchive([]);
+      stochSetStatus("تم مسح أرشيف الصقور.", "ok");
+    }
+
+    function stochLoadSuggestedOptionsArchive() {
+      try {
+        const raw = localStorage.getItem(STOCH_SUGGESTED_OPTIONS_ARCHIVE_STORAGE_KEY);
+        const archive = raw ? JSON.parse(raw) : [];
+        return Array.isArray(archive) ? archive : [];
+      } catch (error) {
+        console.error("Suggested options archive load error:", error);
+        return [];
+      }
+    }
+
+    function stochSaveSuggestedOptionsArchive(archive) {
+      localStorage.setItem(STOCH_SUGGESTED_OPTIONS_ARCHIVE_STORAGE_KEY, JSON.stringify(archive));
+    }
+
+    function stochBuildSuggestedOptionArchiveKey(row) {
+      return [
+        stochFormatDate(row.signal_date),
+        stochNormalizeSymbol(row.symbol),
+        String(row.option_symbol || "").trim(),
+        stochFormatDate(row.expiration),
+        String(row.strike || "").trim()
+      ].join("__");
+    }
+
+    function stochRenderSuggestedOptionsArchive(archiveRows = stochLoadSuggestedOptionsArchive()) {
+      if (!archiveRows || archiveRows.length === 0) {
+        stochSuggestedOptionsArchiveBodyEl.innerHTML = `
+          <tr class="stoch-empty-row">
+            <td colspan="25">لا توجد عقود مقترحة مؤرشفة بعد</td>
+          </tr>
+        `;
+        return;
+      }
+
+      stochSuggestedOptionsArchiveBodyEl.innerHTML = archiveRows.map((row, index) => {
+        const isSelected = String(row.selection_status || "").trim().toLowerCase() === "selected";
+        const selectionStatus = stochBuildSelectionStatus(row);
+
+        return `
+          <tr class="${isSelected ? "stoch-option-row-selected" : ""}">
+            <td>${index + 1}</td>
+            <td>${stochEscapeHtml(stochFormatDate(row.archivedAt || row.archiveDate))}</td>
+            <td><span class="stoch-badge">${stochFormatDisplayValue(row.symbol)}</span></td>
+            <td>${stochFormatDisplayNumber(row.stock_close)}</td>
+            <td>${stochFormatDisplayNumber(row.target_strike)}</td>
+            <td>${stochFormatDisplayValue(row.option_symbol)}</td>
+            <td>${stochFormatDisplayNumber(row.strike)}</td>
+            <td>${stochFormatDisplayValue(stochFormatDate(row.expiration) || row.expiration)}</td>
+            <td>${stochFormatDisplayValue(row.dte)}</td>
+            <td>${stochFormatDisplayNumber(row.ask)}</td>
+            <td>${stochFormatDisplayPercent(row.spread_pct)}</td>
+            <td>${stochFormatDisplayValue(row.volume)}</td>
+            <td>${stochFormatDisplayValue(row.open_interest)}</td>
+            <td>${stochFormatDisplayPercent(row.entry1_hit_100_rate)}</td>
+            <td>${stochFormatDisplayPercent(row.entry2_hit_100_rate)}</td>
+            <td>${stochFormatDisplayPercent(row.entry2_hit_200_rate)}</td>
+            <td>${stochFormatDisplayValue(row.classification)}</td>
+            <td>${stochFormatDisplayValue(row.entry_preference)}</td>
+            <td>${stochFormatDisplayValue(row.risk_level)}</td>
+            <td>${stochFormatDisplayNumber(row.target_1)}</td>
+            <td>${stochFormatDisplayNumber(row.target_2)}</td>
+            <td>${stochFormatDisplayNumber(row.target_3)}</td>
+            <td>${stochFormatDisplayValue(row.exit_plan)}</td>
+            <td>${stochFormatDisplayValue(row.notes)}</td>
+            <td>
+              <span class="stoch-selection-status ${isSelected ? "selected" : ""}">
+                ${stochFormatDisplayValue(selectionStatus)}
+              </span>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    function stochArchiveSuggestedOptions() {
+      if (!stochLatestSuggestedOptionsRows || stochLatestSuggestedOptionsRows.length === 0) {
+        stochSetStatus("لا توجد عقود مقترحة حالية للأرشفة.", "warn");
+        return;
+      }
+
+      const archive = stochLoadSuggestedOptionsArchive();
+      const existingKeys = new Set(
+        archive.map((item) => stochBuildSuggestedOptionArchiveKey(item))
+      );
+      const archivedAt = new Date().toISOString();
+
+      const newItems = stochLatestSuggestedOptionsRows
+        .filter((row) => !existingKeys.has(stochBuildSuggestedOptionArchiveKey(row)))
+        .map((row) => ({
+          ...row,
+          archivedAt,
+          archiveDate: stochFormatDate(archivedAt)
+        }));
+
+      if (newItems.length === 0) {
+        stochSetStatus("كل العقود المقترحة الحالية موجودة مسبقًا في الأرشيف.", "warn");
+        return;
+      }
+
+      const updatedArchive = [...newItems, ...archive];
+
+      stochSaveSuggestedOptionsArchive(updatedArchive);
+      stochRenderSuggestedOptionsArchive(updatedArchive);
+
+      stochSetStatus(`تمت أرشفة ${newItems.length} عقد مقترح بنجاح.`, "ok");
+    }
+
+    function stochLoadLocalSettings() {
+      stochSupabaseUrlEl.value = STOCH_SUPABASE_URL;
+      stochSupabaseKeyEl.value = STOCH_SUPABASE_ANON_KEY;
+      stochOptionsSupabaseUrlEl.value = STOCH_OPTIONS_SUPABASE_URL || localStorage.getItem(STOCH_STORAGE_KEYS.optionsSupabaseUrl) || "";
+      stochOptionsSupabaseKeyEl.value = STOCH_OPTIONS_SUPABASE_ANON_KEY || localStorage.getItem(STOCH_STORAGE_KEYS.optionsSupabaseAnonKey) || "";
+      const hasOptionsKeys = Boolean(stochOptionsSupabaseUrlEl.value.trim() && stochOptionsSupabaseKeyEl.value.trim());
+      stochOptionsSupabaseSettingsEl.classList.toggle("stoch-hidden", hasOptionsKeys);
+      stochOptionsSupabaseSettingsEl.setAttribute("aria-hidden", hasOptionsKeys ? "true" : "false");
+      stochTelegramTokenEl.value = localStorage.getItem(STOCH_STORAGE_KEYS.telegramToken) || "";
+      stochTelegramChatIdEl.value = localStorage.getItem(STOCH_STORAGE_KEYS.telegramChatId) || "";
+    }
+
+    function stochSaveLocalSettings() {
+      localStorage.setItem(STOCH_STORAGE_KEYS.optionsSupabaseUrl, stochOptionsSupabaseUrlEl.value.trim());
+      localStorage.setItem(STOCH_STORAGE_KEYS.optionsSupabaseAnonKey, stochOptionsSupabaseKeyEl.value.trim());
+      localStorage.setItem(STOCH_STORAGE_KEYS.telegramToken, stochTelegramTokenEl.value.trim());
+      localStorage.setItem(STOCH_STORAGE_KEYS.telegramChatId, stochTelegramChatIdEl.value.trim());
+    }
+
+    function stochExportTableToPdf(title, tableBodyEl) {
+      const table = tableBodyEl.closest("table");
+      const printWindow = window.open("", "_blank", "width=1200,height=800");
+
+      if (!printWindow || !table) {
+        stochSetStatus("تعذر فتح نافذة التصدير. تأكد من السماح بالنوافذ المنبثقة.", "warn");
+        return;
+      }
+
+      printWindow.document.write(`
+        <!DOCTYPE html>
+        <html lang="ar" dir="rtl">
+        <head>
+          <meta charset="UTF-8" />
+          <title>${stochEscapeHtml(title)}</title>
+          <style>
+            body {
+              margin: 24px;
+              font-family: Arial, Tahoma, sans-serif;
+              color: #111827;
+            }
+
+            h1 {
+              margin: 0 0 16px;
+              text-align: center;
+              font-size: 22px;
+            }
+
+            table {
+              width: 100%;
+              border-collapse: collapse;
+              direction: rtl;
+              font-size: 11px;
+            }
+
+            th,
+            td {
+              border: 1px solid #d1d5db;
+              padding: 8px 6px;
+              text-align: center;
+              white-space: nowrap;
+            }
+
+            th {
+              background: #f3f4f6;
+              color: #111827;
+            }
+
+            @page {
+              size: landscape;
+              margin: 12mm;
+            }
+          </style>
+        </head>
+        <body>
+          <h1>${stochEscapeHtml(title)}</h1>
+          ${table.outerHTML}
+        </body>
+        </html>
+      `);
+
+      printWindow.document.close();
+      printWindow.focus();
+      printWindow.print();
+    }
+
+    function stochEscapeCsvValue(value) {
+      const text = String(value ?? "");
+      return `"${text.replace(/"/g, '""')}"`;
+    }
+
+    function stochExportArchiveToCsv() {
+      const archiveRows = stochLoadArchive();
+
+      if (!archiveRows || archiveRows.length === 0) {
+        stochSetStatus("لا توجد فرص مؤرشفة لتصديرها إلى CSV.", "warn");
+        return;
+      }
+
+      const headers = [
+        "#",
+        "تاريخ الأرشفة",
+        "الشركة",
+        "تصنيف الصقر",
+        "ملاحظة الصقر",
+        "تاريخ الفرصة",
+        "الخوارزمية",
+        "K",
+        "D",
+        "الفرق K-D",
+        "معامل الحجم",
+        "موقع الإغلاق",
+        "مدى اليوم %"
+      ];
+
+      const csvRows = archiveRows.map((row, index) => [
+        index + 1,
+        stochFormatDate(row.archivedAt || row.archiveDate),
+        row.symbol,
+        row.falcon_class,
+        row.falcon_note,
+        stochFormatDate(row.signalDate),
+        row.strategiesText,
+        stochFormatNumber(row.k),
+        stochFormatNumber(row.d),
+        stochFormatNumber(row.stoch_gap),
+        stochFormatNumber(row.volume_ratio_20d),
+        stochFormatPercent(row.close_position),
+        stochFormatPercent(row.daily_range_pct)
+      ]);
+
+      const csvContent = [
+        headers,
+        ...csvRows
+      ].map((row) => row.map(stochEscapeCsvValue).join(",")).join("\n");
+
+      const blob = new Blob([`\uFEFF${csvContent}`], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const today = new Date().toISOString().slice(0, 10);
+
+      link.href = url;
+      link.download = `falcons-archive-${today}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      stochSetStatus("تم تصدير أرشيف الصقور إلى CSV بنجاح.", "ok");
+    }
+
+    function stochBuildSuggestedOptionsCsvRows(rows) {
+      return rows.map((row, index) => [
+        index + 1,
+        stochFormatDate(row.archivedAt || row.archiveDate),
+        row.symbol,
+        stochFormatDisplayNumber(row.stock_close),
+        stochFormatDisplayNumber(row.target_strike),
+        row.option_symbol,
+        stochFormatDisplayNumber(row.strike),
+        stochFormatDate(row.expiration) || row.expiration,
+        row.dte,
+        stochFormatDisplayNumber(row.ask),
+        stochFormatDisplayPercent(row.spread_pct),
+        row.volume,
+        row.open_interest,
+        stochFormatDisplayPercent(row.entry1_hit_100_rate),
+        stochFormatDisplayPercent(row.entry2_hit_100_rate),
+        stochFormatDisplayPercent(row.entry2_hit_200_rate),
+        row.classification,
+        row.entry_preference,
+        row.risk_level,
+        stochFormatDisplayNumber(row.target_1),
+        stochFormatDisplayNumber(row.target_2),
+        stochFormatDisplayNumber(row.target_3),
+        row.exit_plan,
+        row.notes,
+        stochBuildSelectionStatus(row)
+      ]);
+    }
+
+    function stochExportSuggestedOptionsArchiveToCsv() {
+      const archiveRows = stochLoadSuggestedOptionsArchive();
+
+      if (!archiveRows || archiveRows.length === 0) {
+        stochSetStatus("لا توجد عقود مقترحة مؤرشفة لتصديرها إلى CSV.", "warn");
+        return;
+      }
+
+      const headers = [
+        "#",
+        "تاريخ الأرشفة",
+        "الشركة",
+        "الإغلاق",
+        "الهدف",
+        "العقد",
+        "الاسترايك",
+        "الانتهاء",
+        "DTE",
+        "Ask",
+        "Spread%",
+        "Vol",
+        "OI",
+        "+100 إغلاق",
+        "+100 يوم2",
+        "+200 يوم2",
+        "التصنيف",
+        "الدخول",
+        "المخاطرة",
+        "هدف 1",
+        "هدف 2",
+        "هدف 3",
+        "الخطة",
+        "ملاحظات",
+        "الحالة"
+      ];
+
+      const csvContent = [
+        headers,
+        ...stochBuildSuggestedOptionsCsvRows(archiveRows)
+      ].map((row) => row.map(stochEscapeCsvValue).join(",")).join("\n");
+
+      const blob = new Blob([`\uFEFF${csvContent}`], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      const today = new Date().toISOString().slice(0, 10);
+
+      link.href = url;
+      link.download = `suggested-contracts-archive-${today}.csv`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+
+      stochSetStatus("تم تصدير أرشيف العقود المقترحة إلى CSV بنجاح.", "ok");
+    }
+
+    function stochCreateSupabaseClientFromInputs() {
+      const url = STOCH_SUPABASE_URL.trim() || stochSupabaseUrlEl.value.trim();
+      const anonKey = STOCH_SUPABASE_ANON_KEY.trim() || stochSupabaseKeyEl.value.trim();
+
+      if (!url || !anonKey) {
+        throw new Error("ضع Supabase URL و Supabase Anon Key عبر NEXT_PUBLIC_SUPABASE_URL و NEXT_PUBLIC_SUPABASE_ANON_KEY أو عبر حقول الاختبار.");
+      }
+
+      stochSupabaseClient = supabase.createClient(url, anonKey);
+      return stochSupabaseClient;
+    }
+
+    function stochCreateOptionsSupabaseClientFromInputs() {
+      const url = STOCH_OPTIONS_SUPABASE_URL.trim() || stochOptionsSupabaseUrlEl.value.trim();
+      const anonKey = STOCH_OPTIONS_SUPABASE_ANON_KEY.trim() || stochOptionsSupabaseKeyEl.value.trim();
+
+      if (!url || !anonKey) {
+        throw new Error("ضع Supabase URL و Supabase Anon Key الخاصين بقاعدة العقود المقترحة داخل ثوابت STOCH_DEFAULT_OPTIONS_SUPABASE_URL و STOCH_DEFAULT_OPTIONS_SUPABASE_ANON_KEY.");
+      }
+
+      stochSaveLocalSettings();
+      stochOptionsSupabaseClient = supabase.createClient(url, anonKey);
+      return stochOptionsSupabaseClient;
+    }
+
+    async function stochLoadSuggestedOptions(optionsClient) {
+      try {
+        stochSuggestedOptionsRefreshBtn.disabled = true;
+        const client = optionsClient || stochCreateOptionsSupabaseClientFromInputs();
+        stochRenderSuggestedOptionsEmpty("جاري تحميل العقود المقترحة...");
+
+        const { data, error } = await client
+          .from(STOCH_SUGGESTED_OPTIONS_VIEW)
+          .select("*")
+          .order("signal_date", { ascending: false })
+          .limit(500);
+
+        if (error) {
+          throw new Error(`خطأ في تحميل العقود المقترحة: ${error.message}`);
+        }
+
+        const suggestedRows = data || [];
+        const filteredRows = suggestedRows.filter((row) => (
+          stochCurrentInitialFalconPairs.has(stochBuildSignalPairKey(row.signal_date, row.symbol))
+        ));
+
+        console.log("Initial falcon opportunities count:", stochCurrentInitialFalconPairs.size);
+        console.log("Initial falcon signal_date + symbol pairs:", Array.from(stochCurrentInitialFalconPairs));
+        console.log("suggested_options_compact_view rows before filter:", suggestedRows.length);
+        console.log("suggested_options_compact_view rows after filter:", filteredRows.length);
+
+        stochRenderSuggestedOptions(filteredRows);
+      } catch (error) {
+        console.error(error);
+        stochRenderSuggestedOptionsEmpty(error.message || "تعذر تحميل العقود المقترحة.");
+      } finally {
+        stochSuggestedOptionsRefreshBtn.disabled = false;
+      }
+    }
+
+    function stochBuildInitialFalconSignalRows(rows) {
+      const candidates = (rows || [])
+        .map((row) => {
+          const stockClose = stochToNumber(row.stock_close);
+          const signalDate = stochFormatDate(row.signalDate);
+          const symbol = stochNormalizeSymbol(row.symbol);
+
+          if (!signalDate || !symbol || stockClose === null) return null;
+
+          return {
+            signal_date: signalDate,
+            symbol,
+            falcon_class: row.falcon_class || null,
+            falcon_note: row.falcon_note || null,
+            stock_close: stockClose,
+            target_strike: stockClose * 1.05,
+            options_status: "pending"
+          };
+        })
+        .filter(Boolean);
+
+      const uniqueRowsMap = new Map();
+      candidates.forEach((row) => {
+        uniqueRowsMap.set(`${row.signal_date}|${row.symbol}`, row);
+      });
+
+      return Array.from(uniqueRowsMap.values());
+    }
+
+	    async function stochUpsertInitialFalconSignals(rows, optionsClient) {
+	      const uniqueRows = stochBuildInitialFalconSignalRows(rows);
+
+      console.log("Extracted initial falcon rows count:", uniqueRows.length);
+      uniqueRows.forEach((row) => {
+        console.log("Initial falcon row for upsert:", {
+          signal_date: row.signal_date,
+          symbol: row.symbol,
+          stock_close: row.stock_close,
+          target_strike: row.target_strike,
+          falcon_class: row.falcon_class,
+          falcon_note: row.falcon_note
+        });
+      });
+
+      if (uniqueRows.length === 0) return;
+
+      const symbols = [...new Set(uniqueRows.map((row) => row.symbol))];
+      const dates = [...new Set(uniqueRows.map((row) => row.signal_date))];
+
+      let existingQuery = optionsClient
+        .from(STOCH_FALCON_SIGNALS_TABLE)
+        .select("signal_date, symbol, options_status")
+        .in("symbol", symbols);
+
+      existingQuery = dates.length === 1
+        ? existingQuery.eq("signal_date", dates[0])
+        : existingQuery.in("signal_date", dates);
+
+      const { data: existingRows, error: existingError } = await existingQuery;
+
+      if (existingError) {
+        throw new Error(`خطأ في فحص فرص الصقور المحفوظة: ${existingError.message}`);
+      }
+
+      const processedKeys = new Set(
+        (existingRows || [])
+          .filter((row) => row.options_status === "processed")
+          .map((row) => `${stochFormatDate(row.signal_date)}|${stochNormalizeSymbol(row.symbol)}`)
+      );
+
+      const upsertRows = uniqueRows.filter((row) => !processedKeys.has(`${row.signal_date}|${row.symbol}`));
+
+      if (upsertRows.length === 0) {
+        console.log("falcon_signals upsert result:", {
+          data: [],
+          error: null,
+          status: null,
+          statusText: "skipped: all matching rows are already processed"
+        });
+        return;
+      }
+
+      const upsertResult = await optionsClient
+        .from(STOCH_FALCON_SIGNALS_TABLE)
+        .upsert(upsertRows, { onConflict: "signal_date,symbol" })
+        .select();
+
+      console.log("falcon_signals upsert result:", {
+        data: upsertResult.data,
+        error: upsertResult.error,
+        status: upsertResult.status,
+        statusText: upsertResult.statusText
+      });
+
+      if (upsertResult.error) {
+        throw new Error(`خطأ في حفظ فرص الصقور الأولية في قاعدة العقود: ${upsertResult.error.message}`);
+	      }
+	    }
+	
+	    async function stochProcessPendingOptionsViaLocalServer() {
+	      const controller = new AbortController();
+	      const timeoutId = window.setTimeout(() => controller.abort(), 60000);
+
+	      try {
+	        stochRenderSuggestedOptionsEmpty("جاري تحديث العقود من السيرفر المحلي...");
+
+	        const response = await fetch("http://127.0.0.1:8000/api/process-falcon-options?limit=20&force=false", {
+	          method: "POST",
+	          signal: controller.signal
+	        });
+
+	        const result = await response.json().catch(() => ({}));
+
+	        console.log("Local options processing result:", {
+	          ok: result.ok,
+	          signals_found: result.signals_found,
+	          processed_count: result.processed_count,
+	          error_count: result.error_count
+	        });
+
+	        if (!response.ok || result.ok === false) {
+	          throw new Error(result.message || "تعذر تحديث العقود من السيرفر المحلي.");
+	        }
+	      } catch (error) {
+	        if (error.name === "AbortError") {
+	          throw new Error("انتهت مهلة تحديث العقود من السيرفر المحلي. تأكد أن run_options_server.command يعمل.");
+	        }
+
+	        throw new Error("تعذر تحديث العقود من السيرفر المحلي. تأكد أن run_options_server.command يعمل.");
+	      } finally {
+	        window.clearTimeout(timeoutId);
+	      }
+	    }
+
+	    async function stochRefreshSuggestedOptionsWorkflow() {
+	      try {
+	        stochSuggestedOptionsRefreshBtn.disabled = true;
+	        const optionsClient = stochCreateOptionsSupabaseClientFromInputs();
+	        await stochUpsertInitialFalconSignals(stochCurrentInitialFalconRows, optionsClient);
+	        await stochProcessPendingOptionsViaLocalServer();
+	        await stochLoadSuggestedOptions(optionsClient);
+	      } catch (error) {
+	        console.error(error);
+	        stochRenderSuggestedOptionsEmpty(error.message || "تعذر حفظ فرص الصقور الأولية أو تحميل العقود المقترحة.");
+      } finally {
+        stochSuggestedOptionsRefreshBtn.disabled = false;
+      }
+    }
+
     function stochPickFirstExistingColumn(availableColumns, candidates) {
       return candidates.find((column) => availableColumns.includes(column));
     }
 
-    function stochGroupSignalRows(rows, symbolColumn, dateColumn, strategyColumn) {
-      const groupsMap = new Map();
-
-      rows.forEach((row) => {
-        const symbol = String(row[symbolColumn] || "").trim();
-        const signalDate = stochFormatDate(row[dateColumn]);
-        const strategy = String(row[strategyColumn] || "").trim();
-        if (!symbol || !signalDate || !strategy) return;
-
-        const key = `${symbol}__${signalDate}`;
-        if (!groupsMap.has(key)) {
-          groupsMap.set(key, { symbol, signalDate, strategies: [], strategySet: new Set() });
-        }
-
-        const group = groupsMap.get(key);
-        const normalizedStrategy = strategy.toLowerCase();
-        if (!group.strategySet.has(normalizedStrategy)) {
-          group.strategySet.add(normalizedStrategy);
-          group.strategies.push(strategy);
-        }
-      });
-
-      return Array.from(groupsMap.values());
-    }
-
-    function stochGroupHasPrimaryStrategy(strategies) {
-      return strategies
-        .map((strategy) => String(strategy || "").trim().toLowerCase())
-        .includes(STOCH_PRIMARY_STRATEGY.toLowerCase());
-    }
-
     async function stochFetchLatestMatchingSignals() {
       const cfg = STOCH_CONFIG;
+
       const { data: sampleData, error: sampleError } = await stochSupabaseClient
         .from(cfg.signalsTable)
         .select("*")
         .limit(1);
 
-      if (sampleError) throw new Error(`خطأ في قراءة جدول الفرص: ${sampleError.message}`);
-      if (!sampleData || sampleData.length === 0) return [];
+      if (sampleError) {
+        throw new Error(`خطأ في قراءة جدول الفرص: ${sampleError.message}`);
+      }
+
+      if (!sampleData || sampleData.length === 0) {
+        return [];
+      }
 
       const availableColumns = Object.keys(sampleData[0]);
+
       const symbolColumn = stochPickFirstExistingColumn(availableColumns, [cfg.signalSymbolColumn, "symbol", "ticker"]);
       const dateColumn = stochPickFirstExistingColumn(availableColumns, [cfg.signalDateColumn, "date", "signal_date", "trade_date", "created_at"]);
       const strategyColumn = stochPickFirstExistingColumn(availableColumns, [cfg.signalStrategyColumn, "strategy", "combo_name", "strategy_combo", "combo", "strategies"]);
@@ -811,12 +1852,21 @@
       }
 
       const { data, error } = await query.limit(STOCH_SIGNAL_SEARCH_LIMIT);
-      if (error) throw new Error(`خطأ في جلب آخر الفرص: ${error.message}`);
-      if (!data || data.length === 0) return [];
+
+      if (error) {
+        throw new Error(`خطأ في جلب آخر الفرص: ${error.message}`);
+      }
+
+      if (!data || data.length === 0) {
+        return [];
+      }
 
       const groups = stochGroupSignalRows(data, symbolColumn, dateColumn, strategyColumn);
       const matchedGroups = groups.filter((group) => stochGroupHasPrimaryStrategy(group.strategies));
-      if (matchedGroups.length === 0) return [];
+
+      if (matchedGroups.length === 0) {
+        return [];
+      }
 
       const latestDate = matchedGroups[0].signalDate;
       return matchedGroups.filter((group) => group.signalDate === latestDate);
@@ -825,33 +1875,68 @@
     async function stochFetchStrategyDisplayMap(signals) {
       const cfg = STOCH_CONFIG;
       const strategyDisplayMap = new Map();
-      if (!signals || signals.length === 0) return strategyDisplayMap;
+
+      if (!signals || signals.length === 0) {
+        return strategyDisplayMap;
+      }
+
+      const { data: sampleData, error: sampleError } = await stochSupabaseClient
+        .from(cfg.signalsTable)
+        .select("*")
+        .limit(1);
+
+      if (sampleError) {
+        throw new Error(`خطأ في قراءة جدول الفرص لعرض الخوارزميات: ${sampleError.message}`);
+      }
+
+      if (!sampleData || sampleData.length === 0) {
+        return strategyDisplayMap;
+      }
+
+      const availableColumns = Object.keys(sampleData[0]);
+      const symbolColumn = stochPickFirstExistingColumn(availableColumns, [cfg.signalSymbolColumn, "symbol", "ticker"]);
+      const dateColumn = stochPickFirstExistingColumn(availableColumns, [cfg.signalDateColumn, "date", "signal_date", "trade_date", "created_at"]);
+      const strategyColumn = stochPickFirstExistingColumn(availableColumns, [cfg.signalStrategyColumn, "strategy", "combo_name", "strategy_combo", "combo", "strategies"]);
+
+      if (!symbolColumn || !dateColumn || !strategyColumn) {
+        throw new Error(`تعذر تحديد أعمدة عرض الخوارزميات. الأعمدة الموجودة هي: ${availableColumns.join(", ")}`);
+      }
 
       const symbols = [...new Set(signals.map((signal) => stochNormalizeSymbol(signal.symbol)).filter(Boolean))];
       const dates = [...new Set(signals.map((signal) => stochFormatDate(signal.signalDate)).filter(Boolean))];
 
       let query = stochSupabaseClient
         .from(cfg.signalsTable)
-        .select(`${cfg.signalSymbolColumn}, ${cfg.signalDateColumn}, ${cfg.signalStrategyColumn}`)
-        .in(cfg.signalSymbolColumn, symbols)
-        .order(cfg.signalStrategyColumn, { ascending: true })
+        .select(`${symbolColumn}, ${dateColumn}, ${strategyColumn}`)
+        .in(symbolColumn, symbols)
+        .order(strategyColumn, { ascending: true })
         .limit(1000);
 
-      query = dates.length === 1
-        ? query.eq(cfg.signalDateColumn, dates[0])
-        : query.in(cfg.signalDateColumn, dates);
+      if (dates.length === 1) {
+        query = query.eq(dateColumn, dates[0]);
+      } else {
+        query = query.in(dateColumn, dates);
+      }
 
       const { data, error } = await query;
-      if (error) throw new Error(`خطأ في جلب خريطة عرض الخوارزميات: ${error.message}`);
+
+      if (error) {
+        throw new Error(`خطأ في جلب خريطة عرض الخوارزميات: ${error.message}`);
+      }
 
       (data || []).forEach((row) => {
-        const symbol = stochNormalizeSymbol(row[cfg.signalSymbolColumn]);
-        const signalDate = stochFormatDate(row[cfg.signalDateColumn]);
-        const strategy = String(row[cfg.signalStrategyColumn] || "").trim();
+        const symbol = stochNormalizeSymbol(row[symbolColumn]);
+        const signalDate = stochFormatDate(row[dateColumn]);
+        const strategy = String(row[strategyColumn] || "").trim();
+
         if (!symbol || !signalDate || !strategy) return;
 
         const key = `${symbol}|${signalDate}`;
-        if (!strategyDisplayMap.has(key)) strategyDisplayMap.set(key, new Set());
+
+        if (!strategyDisplayMap.has(key)) {
+          strategyDisplayMap.set(key, new Set());
+        }
+
         strategyDisplayMap.get(key).add(strategy);
       });
 
@@ -861,12 +1946,55 @@
     function stochGetStrategyDisplayText(strategyDisplayMap, signal) {
       const key = `${stochNormalizeSymbol(signal.symbol)}|${stochFormatDate(signal.signalDate)}`;
       const strategies = strategyDisplayMap.get(key);
-      if (!strategies || strategies.size === 0) return signal.strategies.join(" + ");
+
+      if (!strategies || strategies.size === 0) {
+        return signal.strategies.join(" + ");
+      }
+
       return Array.from(strategies).join(" + ");
+    }
+
+    function stochGroupSignalRows(rows, symbolColumn, dateColumn, strategyColumn) {
+      const groupsMap = new Map();
+
+      rows.forEach((row) => {
+        const symbol = String(row[symbolColumn] || "").trim();
+        const signalDate = stochFormatDate(row[dateColumn]);
+        const strategy = String(row[strategyColumn] || "").trim();
+
+        if (!symbol || !signalDate || !strategy) return;
+
+        const key = `${symbol}__${signalDate}`;
+
+        if (!groupsMap.has(key)) {
+          groupsMap.set(key, {
+            symbol,
+            signalDate,
+            strategies: [],
+            strategySet: new Set()
+          });
+        }
+
+        const group = groupsMap.get(key);
+        const normalizedStrategy = strategy.toLowerCase();
+
+        if (!group.strategySet.has(normalizedStrategy)) {
+          group.strategySet.add(normalizedStrategy);
+          group.strategies.push(strategy);
+        }
+      });
+
+      return Array.from(groupsMap.values());
+    }
+
+    function stochGroupHasPrimaryStrategy(strategies) {
+      const normalizedStrategies = strategies.map((strategy) => String(strategy || "").trim().toLowerCase());
+      return normalizedStrategies.includes(STOCH_PRIMARY_STRATEGY.toLowerCase());
     }
 
     async function stochFetchPriceHistory(symbol, signalDate) {
       const cfg = STOCH_CONFIG;
+
       const { data, error } = await stochSupabaseClient
         .from(cfg.pricesTable)
         .select(`${cfg.priceDateColumn}, ${cfg.priceHighColumn}, ${cfg.priceLowColumn}, ${cfg.priceCloseColumn}, ${cfg.priceVolumeColumn}`)
@@ -875,8 +2003,13 @@
         .order(cfg.priceDateColumn, { ascending: false })
         .limit(60);
 
-      if (error) throw new Error(`خطأ في جلب بيانات الأسعار للرمز ${symbol}: ${error.message}`);
-      if (!data || data.length === 0) return [];
+      if (error) {
+        throw new Error(`خطأ في جلب بيانات الأسعار للرمز ${symbol}: ${error.message}`);
+      }
+
+      if (!data || data.length === 0) {
+        return [];
+      }
 
       return data
         .map((row) => ({
@@ -886,47 +2019,80 @@
           close: Number(row[cfg.priceCloseColumn]),
           volume: Number(row[cfg.priceVolumeColumn])
         }))
-        .filter((row) => row.date && Number.isFinite(row.high) && Number.isFinite(row.low) && Number.isFinite(row.close) && Number.isFinite(row.volume))
+        .filter((row) => (
+          row.date &&
+          Number.isFinite(row.high) &&
+          Number.isFinite(row.low) &&
+          Number.isFinite(row.close) &&
+          Number.isFinite(row.volume)
+        ))
         .reverse();
     }
 
     function stochCalculateFalconFactors(priceRows) {
       if (!Array.isArray(priceRows) || priceRows.length === 0) {
-        return { stockClose: null, volumeRatio20d: null, closePosition: null, dailyRangePct: null };
+        return {
+          volumeRatio20d: null,
+          closePosition: null,
+          dailyRangePct: null,
+          reason: "لا توجد بيانات أسعار كافية لحساب معاملات الصقور."
+        };
       }
 
       const lastRow = priceRows[priceRows.length - 1];
+
       const high = stochToNumber(lastRow.high);
       const low = stochToNumber(lastRow.low);
       const close = stochToNumber(lastRow.close);
       const volume = stochToNumber(lastRow.volume);
-      const range = high !== null && low !== null ? high - low : null;
+
       const last20Rows = priceRows.slice(-20);
-      const validVolumes = last20Rows.map((row) => stochToNumber(row.volume)).filter((value) => value !== null && value > 0);
-      const volumeAvg20d = validVolumes.length > 0 ? validVolumes.reduce((sum, value) => sum + value, 0) / validVolumes.length : null;
+      const validVolumes = last20Rows
+        .map((row) => stochToNumber(row.volume))
+        .filter((value) => value !== null && value > 0);
+
+      const volumeAvg20d = validVolumes.length > 0
+        ? validVolumes.reduce((sum, value) => sum + value, 0) / validVolumes.length
+        : null;
+
+      const volumeRatio20d = volumeAvg20d && volume
+        ? volume / volumeAvg20d
+        : null;
+
+      const range = high !== null && low !== null ? high - low : null;
+
+      const closePosition = range && range > 0 && close !== null
+        ? (close - low) / range
+        : null;
+
+      const dailyRangePct = close && range !== null && range > 0
+        ? range / close
+        : null;
 
       return {
         stockClose: close,
-        volumeRatio20d: volumeAvg20d && volume ? volume / volumeAvg20d : null,
-        closePosition: range && range > 0 && close !== null ? (close - low) / range : null,
-        dailyRangePct: close && range !== null && range > 0 ? range / close : null
+        volume,
+        volumeAvg20d,
+        volumeRatio20d,
+        closePosition,
+        dailyRangePct,
+        reason: null
       };
-    }
-
-    function stochSimpleMovingAverage(values, length) {
-      return values.map((_, index) => {
-        if (index < length - 1) return null;
-        const windowValues = values.slice(index - length + 1, index + 1);
-        if (windowValues.some((value) => value === null || value === undefined || Number.isNaN(value))) return null;
-        return windowValues.reduce((acc, value) => acc + value, 0) / length;
-      });
     }
 
     function stochCalculate143(priceRows) {
       const minRows = STOCH_PERIOD_K + STOCH_PERIOD_D - 1;
-      if (!Array.isArray(priceRows) || priceRows.length < minRows) return { k: null, d: null };
+
+      if (!Array.isArray(priceRows) || priceRows.length < minRows) {
+        return {
+          k: null,
+          d: null,
+          reason: `بيانات الأسعار غير كافية. نحتاج على الأقل ${minRows} شمعة تداول.`
+        };
+      }
 
       const rawKValues = [];
+
       for (let i = 0; i < priceRows.length; i++) {
         if (i < STOCH_PERIOD_K - 1) {
           rawKValues.push(null);
@@ -938,16 +2104,38 @@
         const lowestLow = Math.min(...windowRows.map((row) => row.low));
         const close = priceRows[i].close;
         const range = highestHigh - lowestLow;
+
         rawKValues.push(range === 0 ? null : 100 * (close - lowestLow) / range);
       }
 
       const kValues = stochSimpleMovingAverage(rawKValues, STOCH_SMOOTH_K);
       const dValues = stochSimpleMovingAverage(kValues, STOCH_PERIOD_D);
-      return { k: kValues[kValues.length - 1], d: dValues[dValues.length - 1] };
+
+      return {
+        k: kValues[kValues.length - 1],
+        d: dValues[dValues.length - 1],
+        reason: null
+      };
+    }
+
+    function stochSimpleMovingAverage(values, length) {
+      return values.map((_, index) => {
+        if (index < length - 1) return null;
+
+        const windowValues = values.slice(index - length + 1, index + 1);
+
+        if (windowValues.some((value) => value === null || value === undefined || Number.isNaN(value))) {
+          return null;
+        }
+
+        const sum = windowValues.reduce((acc, value) => acc + value, 0);
+        return sum / length;
+      });
     }
 
     function stochPassesFalconFilters(row) {
       const symbol = stochNormalizeSymbol(row.symbol);
+
       const k = stochToNumber(row.k);
       const d = stochToNumber(row.d);
       const stochGap = stochToNumber(row.stoch_gap);
@@ -973,6 +2161,7 @@
 
     function stochPassesFalconFiltersBeforeClosePosition(row) {
       const symbol = stochNormalizeSymbol(row.symbol);
+
       const k = stochToNumber(row.k);
       const d = stochToNumber(row.d);
       const stochGap = stochToNumber(row.stoch_gap);
@@ -993,101 +2182,316 @@
       );
     }
 
-    async function stochLoadFalconTables() {
-      stochLatestResults = [];
-      stochArchiveBtn.disabled = true;
-      stochRenderEmptyForBody(stochResultBodyEl, "جاري التحميل...");
-      stochRenderEmptyForBody(stochBeforeClosePositionBodyEl, "جاري التحميل...");
-
-      const matchingSignals = await stochFetchLatestMatchingSignals();
-      if (!matchingSignals || matchingSignals.length === 0) {
-        stochRenderEmptyForBody(stochResultBodyEl, "لا توجد فرصة متاحة");
-        stochRenderEmptyForBody(stochBeforeClosePositionBodyEl, "لا توجد فرصة متاحة");
-        stochUpdateCurrentInitialFalconPairs([]);
-        return { finalCount: 0, initialCount: 0 };
-      }
-
-      const strategyDisplayMap = await stochFetchStrategyDisplayMap(matchingSignals);
-      const results = [];
-
-      for (const signal of matchingSignals) {
-        const prices = await stochFetchPriceHistory(signal.symbol, signal.signalDate);
-        const stochResult = stochCalculate143(prices);
-        const falconFactors = stochCalculateFalconFactors(prices);
-        const stochGap = Number.isFinite(stochResult.k) && Number.isFinite(stochResult.d)
-          ? stochResult.k - stochResult.d
-          : null;
-
-        results.push({
-          symbol: stochNormalizeSymbol(signal.symbol),
-          signalDate: signal.signalDate,
-          strategiesText: stochGetStrategyDisplayText(strategyDisplayMap, signal),
-          k: stochResult.k,
-          d: stochResult.d,
-          stoch_gap: stochGap,
-          stock_close: falconFactors.stockClose,
-          volume_ratio_20d: falconFactors.volumeRatio20d,
-          close_position: falconFactors.closePosition,
-          daily_range_pct: falconFactors.dailyRangePct,
-          falcon_class: stochGetFalconClass(signal.symbol),
-          falcon_note: stochGetFalconNote(signal.symbol)
-        });
-      }
-
-      const beforeClosePositionResults = results.filter(stochPassesFalconFiltersBeforeClosePosition);
-      const filteredResults = beforeClosePositionResults.filter(stochPassesFalconFilters);
-
-      stochLatestResults = filteredResults;
-      stochArchiveBtn.disabled = filteredResults.length === 0;
-      stochRenderRows(stochResultBodyEl, filteredResults, "لا توجد فرص مطابقة");
-      stochRenderRows(stochBeforeClosePositionBodyEl, beforeClosePositionResults, "لا توجد فرص قبل شرط موقع الإغلاق");
-      stochUpdateCurrentInitialFalconPairs(beforeClosePositionResults);
-
-      return { finalCount: filteredResults.length, initialCount: beforeClosePositionResults.length };
-    }
-
-    async function stochLoadSuggestedOptions() {
-      stochRenderSuggestedOptionsEmpty("جاري تحميل العقود المقترحة...");
-
-      const { data, error } = await stochOptionsSupabaseClient
-        .from(STOCH_SUGGESTED_OPTIONS_VIEW)
-        .select("*")
-        .order("signal_date", { ascending: false })
-        .limit(500);
-
-      if (error) throw new Error(`خطأ في تحميل العقود المقترحة: ${error.message}`);
-
-      const suggestedRows = data || [];
-      const filteredRows = suggestedRows.filter((row) => (
-        stochCurrentInitialFalconPairs.has(stochBuildSignalPairKey(row.signal_date, row.symbol))
-      ));
-
-      stochRenderSuggestedOptions(filteredRows);
-      return filteredRows.length;
-    }
-
-    async function stochRefreshOnlineDashboard() {
+    async function stochLoadLatestComboSignals() {
       try {
         stochRefreshBtn.disabled = true;
-        stochSetStatus("جاري تحديث العرض من Supabase...");
-        const falconCounts = await stochLoadFalconTables();
-        const optionsCount = await stochLoadSuggestedOptions();
-        stochSetStatus(`تم تحديث العرض. الصقور: ${falconCounts.finalCount}، الأولية: ${falconCounts.initialCount}، العقود: ${optionsCount}.`, "ok");
+        stochTelegramBtn.disabled = true;
+        stochArchiveBtn.disabled = true;
+        stochLatestResults = [];
+
+        stochCreateSupabaseClientFromInputs();
+        stochSetStatus("جاري جلب الفرص وحساب قيم K و D...");
+        stochRenderEmpty("جاري التحميل...");
+        stochRenderEmptyForBody(stochBeforeClosePositionBodyEl, "جاري التحميل...");
+
+        const matchingSignals = await stochFetchLatestMatchingSignals();
+
+        if (!matchingSignals || matchingSignals.length === 0) {
+          stochSetStatus(`لا توجد فرصة حديثة تحتوي على ${STOCH_PRIMARY_STRATEGY} ضمن آخر ${STOCH_SIGNAL_SEARCH_LIMIT} سطر.`, "warn");
+          stochRenderEmpty("لا توجد فرصة متاحة");
+          stochRenderEmptyForBody(stochBeforeClosePositionBodyEl, "لا توجد فرصة متاحة");
+          return;
+        }
+
+        const strategyDisplayMap = await stochFetchStrategyDisplayMap(matchingSignals);
+        const results = [];
+        const warnings = [];
+
+        for (const signal of matchingSignals) {
+          const prices = await stochFetchPriceHistory(signal.symbol, signal.signalDate);
+          const stochResult = stochCalculate143(prices);
+          const falconFactors = stochCalculateFalconFactors(prices);
+          const stochGap = (
+            Number.isFinite(stochResult.k) && Number.isFinite(stochResult.d)
+          )
+            ? stochResult.k - stochResult.d
+            : null;
+
+          results.push({
+            symbol: stochNormalizeSymbol(signal.symbol),
+            signalDate: signal.signalDate,
+            strategiesText: stochGetStrategyDisplayText(strategyDisplayMap, signal),
+            k: stochResult.k,
+            d: stochResult.d,
+            stoch_gap: stochGap,
+            stock_close: falconFactors.stockClose,
+            volume_ratio_20d: falconFactors.volumeRatio20d,
+            close_position: falconFactors.closePosition,
+            daily_range_pct: falconFactors.dailyRangePct,
+            falcon_class: stochGetFalconClass(signal.symbol),
+            falcon_note: stochGetFalconNote(signal.symbol)
+          });
+
+          if (stochResult.reason) {
+            warnings.push(`${signal.symbol}: ${stochResult.reason}`);
+          }
+
+          if (falconFactors.reason) {
+            warnings.push(`${signal.symbol}: ${falconFactors.reason}`);
+          }
+        }
+
+        console.log("Falcons before filter:", results.length);
+
+        const beforeClosePositionResults = results
+          .filter(stochPassesFalconFiltersBeforeClosePosition)
+          .map((row) => ({
+            ...row,
+            falcon_class: stochGetFalconClass(row.symbol),
+            falcon_note: stochGetFalconNote(row.symbol)
+          }));
+
+        const filteredResults = beforeClosePositionResults
+          .filter(stochPassesFalconFilters);
+
+        console.log("Falcons after filter:", filteredResults.length);
+
+        stochLatestResults = filteredResults;
+        stochRenderResults(filteredResults);
+        stochRenderBeforeClosePositionResults(beforeClosePositionResults);
+        stochUpdateCurrentInitialFalconPairs(beforeClosePositionResults);
+
+        stochTelegramBtn.disabled = filteredResults.length === 0;
+        stochArchiveBtn.disabled = filteredResults.length === 0;
+
+        if (warnings.length > 0) {
+          stochSetStatus(`تم عرض ${filteredResults.length} فرصة، لكن توجد ملاحظات على بعض الحسابات.`, "warn");
+        } else {
+          stochSetStatus(`تم تحميل ${filteredResults.length} فرصة وحساب القيم بنجاح.`, "ok");
+        }
       } catch (error) {
         console.error(error);
-        stochSetStatus(error.message || "تعذر تحديث العرض.", "error");
-        stochRenderSuggestedOptionsEmpty("لا توجد عقود مقترحة محفوظة حتى الآن.");
+        stochSetStatus(error.message || "حدث خطأ غير معروف.", "error");
+        stochRenderEmpty("تعذر تحميل البيانات");
+        stochRenderEmptyForBody(stochBeforeClosePositionBodyEl, "تعذر تحميل البيانات");
       } finally {
         stochRefreshBtn.disabled = false;
       }
     }
 
-    stochRefreshBtn.addEventListener("click", stochRefreshOnlineDashboard);
+    function stochBuildTelegramMessage(results) {
+      const rows = Array.isArray(results) ? results : [results];
+
+      const lines = [
+        "🚨 فرص Stoch",
+        "",
+        "الإعدادات: Stoch 14,1,3",
+        ""
+      ];
+
+      rows.forEach((result, index) => {
+        lines.push(
+          `${index + 1}) ${result.symbol}`,
+          `التاريخ: ${stochFormatDate(result.signalDate)}`,
+          `الاستراتيجيات: ${result.strategiesText}`,
+          `تصنيف: ${result.falcon_class}`,
+          `ملاحظة: ${result.falcon_note}`,
+          `K: ${stochFormatNumber(result.k)}`,
+          `D: ${stochFormatNumber(result.d)}`,
+          `K-D: ${stochFormatNumber(result.stoch_gap)}`,
+          `Volume Ratio 20D: ${stochFormatNumber(result.volume_ratio_20d)}`,
+          `Close Position: ${stochFormatPercent(result.close_position)}`,
+          `Daily Range: ${stochFormatPercent(result.daily_range_pct)}`,
+          ""
+        );
+      });
+
+      return lines.join("\n");
+    }
+
+    async function stochSendLatestResultsToTelegram() {
+      try {
+        stochSaveLocalSettings();
+
+        if (!stochLatestResults || stochLatestResults.length === 0) {
+          stochSetStatus("لا توجد نتائج جاهزة للإرسال. حدّث البيانات أولًا.", "warn");
+          return;
+        }
+
+        const token = stochTelegramTokenEl.value.trim();
+        const chatId = stochTelegramChatIdEl.value.trim();
+
+        if (!token || !chatId) {
+          stochSetStatus("ضع Telegram Bot Token و Chat ID قبل الإرسال.", "warn");
+          return;
+        }
+
+        stochTelegramBtn.disabled = true;
+        stochSetStatus("جاري إرسال الفرص إلى تيليجرام...");
+
+        const message = stochBuildTelegramMessage(stochLatestResults);
+        const response = await fetch(`https://api.telegram.org/bot${token}/sendMessage`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ chat_id: chatId, text: message })
+        });
+
+        const telegramResult = await response.json();
+
+        if (!response.ok || !telegramResult.ok) {
+          throw new Error(telegramResult.description || "فشل إرسال الرسالة إلى تيليجرام.");
+        }
+
+        stochSetStatus("تم إرسال الفرص إلى تيليجرام بنجاح.", "ok");
+      } catch (error) {
+        console.error(error);
+        stochSetStatus(error.message || "حدث خطأ أثناء الإرسال إلى تيليجرام.", "error");
+      } finally {
+        stochTelegramBtn.disabled = !stochLatestResults || stochLatestResults.length === 0;
+      }
+    }
+
+    stochRefreshBtn.addEventListener("click", stochLoadLatestComboSignals);
+    stochSuggestedOptionsRefreshBtn.addEventListener("click", stochRefreshSuggestedOptionsWorkflow);
+    stochSuggestedOptionsArchiveBtn.addEventListener("click", stochArchiveSuggestedOptions);
     stochArchiveBtn.addEventListener("click", stochArchiveLatestResults);
+    stochTelegramBtn.addEventListener("click", stochSendLatestResultsToTelegram);
+    stochClearArchiveBtn.addEventListener("click", stochClearArchive);
+    stochResultsPdfBtn.addEventListener("click", () => stochExportTableToPdf("قائمة الصقور - Falcons List", stochResultBodyEl));
+    stochBeforeClosePositionPdfBtn.addEventListener("click", () => stochExportTableToPdf("قائمة الصقور الأولية - Initial Falcons List", stochBeforeClosePositionBodyEl));
+    stochArchivePdfBtn.addEventListener("click", () => stochExportTableToPdf("أرشيف الصقور - Falcons Archive", stochArchiveBodyEl));
+    stochArchiveCsvBtn.addEventListener("click", stochExportArchiveToCsv);
+    stochSuggestedOptionsArchivePdfBtn.addEventListener("click", () => stochExportTableToPdf("أرشيف العقود المقترحة - Suggested Contracts Archive", stochSuggestedOptionsArchiveBodyEl));
+    stochSuggestedOptionsArchiveCsvBtn.addEventListener("click", stochExportSuggestedOptionsArchiveToCsv);
     document.addEventListener("DOMContentLoaded", () => {
+      stochLoadLocalSettings();
       stochRenderArchive();
-      stochRefreshOnlineDashboard();
+      stochRenderSuggestedOptionsArchive();
+      stochLoadLatestComboSignals();
     });
+  </script>
+
+  <script>
+    /* Falcons quick-filter table — fully independent, reads only from the existing
+       "قائمة الصقور الأولية" table and does not modify any existing code/state. */
+    (function () {
+      "use strict";
+
+      var FALCONS_FILTER_SOURCE_BODY_ID = "stoch-before-close-position-body";
+      var FALCONS_FILTER_COLUMN_COUNT = 13;
+      var FALCONS_FILTER_CLASS_INDEX = 2;
+      var FALCONS_FILTER_VOLUME_RATIO_INDEX = 9;
+      var FALCONS_FILTER_DAILY_RANGE_INDEX = 11;
+
+      function falconsFilterEscapeHtml(value) {
+        return String(value == null ? "" : value)
+          .replace(/&/g, "&amp;")
+          .replace(/</g, "&lt;")
+          .replace(/>/g, "&gt;")
+          .replace(/"/g, "&quot;")
+          .replace(/'/g, "&#039;");
+      }
+
+      function falconsFilterParsePercent(text) {
+        var cleaned = String(text || "").replace("%", "").trim();
+        var n = Number(cleaned);
+        return Number.isFinite(n) ? n : null;
+      }
+
+      function falconsFilterParseNumber(text) {
+        var n = Number(String(text || "").trim());
+        return Number.isFinite(n) ? n : null;
+      }
+
+      function falconsFilterGetRowClassName(falconClass) {
+        if (falconClass === "فرصة قوية") return "falcons-filter-row-strong";
+        if (falconClass === "فرصة خطيرة") return "falcons-filter-row-risky";
+        return "";
+      }
+
+      function falconsFilterReadMatchingRows() {
+        var sourceBody = document.getElementById(FALCONS_FILTER_SOURCE_BODY_ID);
+        if (!sourceBody) return [];
+
+        var sourceRows = Array.prototype.slice.call(sourceBody.querySelectorAll("tr"));
+        var matchedRows = [];
+
+        sourceRows.forEach(function (row) {
+          var cells = row.querySelectorAll("td");
+          if (cells.length < FALCONS_FILTER_COLUMN_COUNT) return;
+
+          var cellTexts = Array.prototype.map.call(cells, function (cell) {
+            return cell.textContent.trim();
+          });
+
+          var dailyRangePct = falconsFilterParsePercent(cellTexts[FALCONS_FILTER_DAILY_RANGE_INDEX]);
+          var volumeRatio = falconsFilterParseNumber(cellTexts[FALCONS_FILTER_VOLUME_RATIO_INDEX]);
+
+          if (dailyRangePct === null || volumeRatio === null) return;
+          if (dailyRangePct >= 4 && volumeRatio >= 1.1) {
+            matchedRows.push(cellTexts);
+          }
+        });
+
+        return matchedRows;
+      }
+
+      function falconsFilterRender() {
+        var tbody = document.getElementById("falcons-filter-body");
+        var counterEl = document.getElementById("falcons-filter-counter");
+        if (!tbody || !counterEl) return;
+
+        var matchedRows = falconsFilterReadMatchingRows();
+        counterEl.textContent = "(" + matchedRows.length + " فرص)";
+
+        if (matchedRows.length === 0) {
+          tbody.innerHTML =
+            '<tr class="falcons-filter-empty-row">' +
+            '<td colspan="' + FALCONS_FILTER_COLUMN_COUNT + '">لا توجد فرص مؤهلة حالياً</td>' +
+            "</tr>";
+          return;
+        }
+
+        tbody.innerHTML = matchedRows.map(function (cellTexts, index) {
+          var rowClassName = falconsFilterGetRowClassName(cellTexts[FALCONS_FILTER_CLASS_INDEX]);
+
+          var tds = cellTexts.map(function (text, columnIndex) {
+            var isFalconClassColumn = columnIndex === FALCONS_FILTER_CLASS_INDEX;
+            var displayText = columnIndex === 0 ? String(index + 1) : text;
+            var cellClassAttr = isFalconClassColumn ? ' class="falcons-filter-class-cell"' : "";
+            return "<td" + cellClassAttr + ">" + falconsFilterEscapeHtml(displayText) + "</td>";
+          }).join("");
+
+          return '<tr class="' + rowClassName + '">' + tds + "</tr>";
+        }).join("");
+      }
+
+      var falconsFilterRenderScheduled = false;
+      function falconsFilterScheduleRender() {
+        if (falconsFilterRenderScheduled) return;
+        falconsFilterRenderScheduled = true;
+        window.requestAnimationFrame(function () {
+          falconsFilterRenderScheduled = false;
+          falconsFilterRender();
+        });
+      }
+
+      function falconsFilterInit() {
+        falconsFilterRender();
+
+        var sourceBody = document.getElementById(FALCONS_FILTER_SOURCE_BODY_ID);
+        if (!sourceBody) return;
+
+        var observer = new MutationObserver(falconsFilterScheduleRender);
+        observer.observe(sourceBody, { childList: true, subtree: true, characterData: true });
+      }
+
+      if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", falconsFilterInit);
+      } else {
+        falconsFilterInit();
+      }
+    })();
   </script>
 </body>
 </html>
